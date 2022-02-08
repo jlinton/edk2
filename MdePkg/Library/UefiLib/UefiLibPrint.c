@@ -9,6 +9,8 @@
 
 #include "UefiLibInternal.h"
 
+static CHAR16 LargeBackupBuffer[32*1024];
+
 GLOBAL_REMOVE_IF_UNREFERENCED EFI_GRAPHICS_OUTPUT_BLT_PIXEL  mEfiColors[16] = {
   { 0x00, 0x00, 0x00, 0x00 },
   { 0x98, 0x00, 0x00, 0x00 },
@@ -65,7 +67,10 @@ InternalPrint (
   BufferSize = (PcdGet32 (PcdUefiLibMaxPrintBufferSize) + 1) * sizeof (CHAR16);
 
   Buffer = (CHAR16 *)AllocatePool (BufferSize);
-  ASSERT (Buffer != NULL);
+//  ASSERT (Buffer != NULL);
+  if (Buffer == NULL)
+	  Buffer = LargeBackupBuffer;
+
 
   Return = UnicodeVSPrint (Buffer, BufferSize, Format, Marker);
 
@@ -79,7 +84,8 @@ InternalPrint (
     }
   }
 
-  FreePool (Buffer);
+  if (Buffer != LargeBackupBuffer)
+	  FreePool (Buffer);
 
   return Return;
 }
@@ -199,7 +205,9 @@ AsciiInternalPrint (
   BufferSize = (PcdGet32 (PcdUefiLibMaxPrintBufferSize) + 1) * sizeof (CHAR16);
 
   Buffer = (CHAR16 *)AllocatePool (BufferSize);
-  ASSERT (Buffer != NULL);
+//  ASSERT (Buffer != NULL);
+  if (Buffer == NULL)
+	  Buffer = LargeBackupBuffer;
 
   Return = UnicodeVSPrintAsciiFormat (Buffer, BufferSize, Format, Marker);
 
@@ -213,7 +221,8 @@ AsciiInternalPrint (
     }
   }
 
-  FreePool (Buffer);
+  if (Buffer != LargeBackupBuffer)
+	  FreePool (Buffer);
 
   return Return;
 }
@@ -625,15 +634,19 @@ PrintXY (
   BufferSize = (PcdGet32 (PcdUefiLibMaxPrintBufferSize) + 1) * sizeof (CHAR16);
 
   Buffer = (CHAR16 *)AllocatePool (BufferSize);
-  ASSERT (Buffer != NULL);
+  if (Buffer == NULL)
+	  Buffer = LargeBackupBuffer;
+
+//  ASSERT (Buffer != NULL);
 
   PrintNum = UnicodeVSPrint (Buffer, BufferSize, Format, Marker);
 
   VA_END (Marker);
 
   ReturnNum = InternalPrintGraphic (PointX, PointY, ForeGround, BackGround, Buffer, PrintNum);
-
-  FreePool (Buffer);
+  
+  if (Buffer != LargeBackupBuffer)
+	  FreePool (Buffer);
 
   return ReturnNum;
 }
@@ -703,7 +716,9 @@ AsciiPrintXY (
   BufferSize = (PcdGet32 (PcdUefiLibMaxPrintBufferSize) + 1) * sizeof (CHAR16);
 
   Buffer = (CHAR16 *)AllocatePool (BufferSize);
-  ASSERT (Buffer != NULL);
+  //ASSERT (Buffer != NULL);
+  if (Buffer == NULL)
+	  Buffer = LargeBackupBuffer;
 
   PrintNum = UnicodeSPrintAsciiFormat (Buffer, BufferSize, Format, Marker);
 
@@ -711,7 +726,8 @@ AsciiPrintXY (
 
   ReturnNum = InternalPrintGraphic (PointX, PointY, ForeGround, BackGround, Buffer, PrintNum);
 
-  FreePool (Buffer);
+  if (Buffer != LargeBackupBuffer)
+	  FreePool (Buffer);
 
   return ReturnNum;
 }
