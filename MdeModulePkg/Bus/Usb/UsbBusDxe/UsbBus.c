@@ -877,11 +877,20 @@ UsbIoPortReset (
 
   DEBUG ((DEBUG_INFO, "UsbIoPortReset: device is now ADDRESSED at %d\n", Dev->Address));
 
+// still no fix?
+// https://edk2.groups.io/g/devel/message/58193
+
   //
   // Reset the current active configure, after this device
   // is in CONFIGURED state.
   //
   if (Dev->ActiveConfig != NULL) {
+	  Status = UsbBuildDescTable (Dev);
+	  if (EFI_ERROR (Status)) {
+			  DEBUG ((EFI_D_ERROR, "UsbIoPortReset: failed to build descriptor tab=le for %d - %r\n", Dev->Address, Status));
+			  goto ON_EXIT;
+	  }
+
     Status = UsbSetConfig (Dev, Dev->ActiveConfig->Desc.ConfigurationValue);
 
     if (EFI_ERROR (Status)) {
